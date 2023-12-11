@@ -50,6 +50,6 @@ def test_Q_learning(visualize = False):
 if __name__ == "__main__":
     print('-' * 40)
     try:
-         test_Q_learning()
+        test_Q_learning()
     except Exception as e:
         print(e)

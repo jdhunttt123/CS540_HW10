@@ -39,10 +39,18 @@ if __name__ == "__main__":
         # TODO: Replace the following with Q-Learning
 
         while (not done):
+            if np.random.rand() < EPSILON:
+                action = env.action_space.sample()  # Exploration: Random action
+            else:
+                action = max(Q_table[obs], key=Q_table[obs].get)  # Exploitation: Greedy action
 
-            action = env.action_space.sample() # currently only performs a random action.
-            obs,reward,done,info = env.step(action)
+            next_obs,reward,done,info = env.step(action)
+            
+            # Update Q-value using the Q-learning update rule
+            Q_table[obs][action] = (1 - LEARNING_RATE) * Q_table[obs][action] + LEARNING_RATE * (reward + DISCOUNT_FACTOR * max(Q_table[next_obs].values()))
+            obs = next_obs
             episode_reward += reward # update episode reward
+        EPSILON *= EPSILON_DECAY
 
         # END of TODO
         # YOU DO NOT NEED TO CHANGE ANYTHING BELOW THIS LINE
@@ -50,7 +58,7 @@ if __name__ == "__main__":
 
         # record the reward for this episode
         episode_reward_record.append(episode_reward) 
-     
+    
         if i % 100 == 0 and i > 0:
             print("LAST 100 EPISODE AVERAGE REWARD: " + str(sum(list(episode_reward_record))/100))
             print("EPSILON: " + str(EPSILON) )
