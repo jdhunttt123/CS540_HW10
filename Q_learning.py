@@ -37,20 +37,33 @@ if __name__ == "__main__":
         ##########################################################
         # YOU DO NOT NEED TO CHANGE ANYTHING ABOVE THIS LINE
         # TODO: Replace the following with Q-Learning
-
+        
+        # ChatGPT made everything
+        
         while (not done):
-            if np.random.rand() < EPSILON:
-                action = env.action_space.sample()  # Exploration: Random action
+            if random.uniform(0,1) < EPSILON:
+                action = env.action_space.sample()
             else:
-                action = max(Q_table[obs], key=Q_table[obs].get)  # Exploitation: Greedy action
-
+                prediction = np.array([Q_table[(obs,i)] for i in range(env.action_space.n)])
+                action = np.argmax(prediction)
+                
             next_obs,reward,done,info = env.step(action)
-            
-            # Update Q-value using the Q-learning update rule
-            Q_table[obs][action] = (1 - LEARNING_RATE) * Q_table[obs][action] + LEARNING_RATE * (reward + DISCOUNT_FACTOR * max(Q_table[next_obs].values()))
+            episode_reward += reward
+            if done:
+                Q_table[(obs, action)] = Q_table[(obs, action)] + LEARNING_RATE * (reward - Q_table[(obs,action)])
+            else:
+                prediction = np.array([Q_table[(next_obs,i)] for i in range(env.action_space.n)])
+                expect_reward = np.max(prediction)
+                Q_table[(obs, action)] = Q_table[(obs, action)] + LEARNING_RATE * (reward + DISCOUNT_FACTOR * expect_reward - Q_table[(obs, action)])
+                
             obs = next_obs
-            episode_reward += reward # update episode reward
-        EPSILON *= EPSILON_DECAY
+        
+        episode_reward_record.append(episode_reward)
+        
+        if i%100 ==0 and i>0:
+            print("LAST 100 EPISODE AVERAGE REWARD: " + str(sum(list(episode_reward_record))/100))
+            print("EPSILON: " + str(EPSILON) )
+        EPSILON = EPSILON * EPSILON_DECAY
 
         # END of TODO
         # YOU DO NOT NEED TO CHANGE ANYTHING BELOW THIS LINE
